@@ -59,16 +59,24 @@ public class TEBucksController {
         int userId = userDao.findIdByUsername(principal.getName());
 
         transfer.setAccountFrom(accountDao.getAccount(userId).getAccountId());
-        Transfer newTransfer = transferDao.addTransfer(transfer);
+        Transfer newTransfer = transferDao.sendTransfer(transfer);
 
-        transferDao.updateFrom(transfer, newTransfer.getAmount());
-        transferDao.updateTo(transfer, newTransfer.getAmount());
+
 
         return newTransfer;
     }
         //3-6 The receiver's account balance is increased by the amount of the transfer.
         //The sender's account balance is decreased by the amount of the transfer.
         //I can't send more TE Bucks than I have in my account.
+
+    //As an authenticated user of the system, I need to be able to see transfers I have sent or received.
+    //As an authenticated user of the system, I need to be able to retrieve the details of any transfer based upon the transfer ID.
+
+    @RequestMapping(path = "transferlist", method = RequestMethod.GET)
+    public List<Transfer> getTransfers(Principal principal) { return transferDao.findAll();
+        int userId = userDao.findIdByUsername(principal.getName());
+        int transferId
+    }
 
 
 //    @RequestMapping(path = "transfer/from", method = RequestMethod.PUT)

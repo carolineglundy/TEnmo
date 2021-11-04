@@ -32,7 +32,7 @@ public class JdbcAccountDao implements AccountDao{
     public void update(Account account, int userId) {
         String sql = "UPDATE account " +
                 "SET balance = balance - (SELECT amount FROM transfer WHERE account_from = ?)  " +
-                "WHERE account_id = ?;";
+                "WHERE account_id = ? AND ;";
         jdbcTemplate.update(sql, userId, account.getAccountId());
 
     }

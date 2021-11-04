@@ -3,6 +3,7 @@ package com.techelevator.tenmo.dao;
 import com.techelevator.tenmo.model.Transfer;
 
 import java.math.BigDecimal;
+import java.util.List;
 
 public interface TransferDao {
 
@@ -10,7 +11,11 @@ public interface TransferDao {
 
     Transfer getTransfer(int transferId);
 
-    void updateFrom(Transfer newTransfer, BigDecimal amount);
+    Transfer sendTransfer(Transfer transfer);
+
+    List<Transfer> transferList(int transferId);
+
+    int updateFrom(Transfer newTransfer, BigDecimal amount);
 
     void updateTo(Transfer newTransfer, BigDecimal amount);
 

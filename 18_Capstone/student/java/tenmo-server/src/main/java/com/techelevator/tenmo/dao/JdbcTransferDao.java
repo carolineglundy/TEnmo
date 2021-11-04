@@ -5,8 +5,11 @@ import com.techelevator.tenmo.model.Transfer;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.support.rowset.SqlRowSet;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
+import java.util.ArrayList;
+import java.util.List;
 
 @Component
 public class JdbcTransferDao implements TransferDao{
@@ -27,6 +30,19 @@ public class JdbcTransferDao implements TransferDao{
         return transfer;
     }
     // we need a big method that calls addTransfer and updateAccount
+    @Transactional
+    @Override
+    public Transfer sendTransfer(Transfer transfer) {
+        Transfer resultTransfer = addTransfer(transfer);
+        //updateFrom(transfer, transfer.getAmount());
+        int result = updateFrom(transfer, transfer.getAmount());
+        if (result == 0) {
+            transfer.setTransferStatusId(3);
+        } else {
+          updateTo(transfer, transfer.getAmount());
+        } return resultTransfer;
+    }
+
     @Override
     public Transfer addTransfer(Transfer newTransfer) {
         String sql ="INSERT INTO transfers (transfer_type_id, transfer_status_id, account_from, account_to, amount)  " +
@@ -37,16 +53,16 @@ public class JdbcTransferDao implements TransferDao{
         return getTransfer(newId);
     }
 
-
-    public void updateFrom(Transfer newTransfer, BigDecimal amount) {
+    @Override
+    public int updateFrom(Transfer newTransfer, BigDecimal amount) {
         String sql = "UPDATE accounts " +
                 "SET balance = balance - ? " +
-                "WHERE account_id = ? ; ";
-        jdbcTemplate.update(sql, amount, newTransfer.getAccountFrom());
-
+                "WHERE account_id = ? AND balance >= ?; ";
+       return jdbcTemplate.update(sql, amount, newTransfer.getAccountFrom(), amount); //returning an int gives us the rows and lets us know it was actually updated
+        //if int doesn't equal zero, do updateTo
     }
 
-
+    @Override
     public void updateTo(Transfer newTransfer, BigDecimal amount) {
         String sql = "UPDATE accounts " +
                 "SET balance = balance + ?  " +
@@ -55,8 +71,21 @@ public class JdbcTransferDao implements TransferDao{
 
     }
 
-
-
+    @Override
+    public List<Transfer> transferList(int transferId) {
+        List<Transfer> transfers = new ArrayList<>();
+        String sql = "SELECT * " +
+                "FROM transfers " +
+                "INNER JOIN account_id ON transfers.account_from = accounts.account_id" +
+                "INNER JOIN account_id ON transfers.account_to = accounts.account_id" +
+                "WHERE account_id = ?;";
+        SqlRowSet results = jdbcTemplate.queryForRowSet(sql, transferId);
+            while (results.next()) {
+                Transfer transfer = mapRowToTransfer(results);
+                transfers.add(transfer);
+            }
+            return transfers;
+    }
 
     private Transfer mapRowToTransfer(SqlRowSet results) {
 
@@ -72,5 +101,5 @@ public class JdbcTransferDao implements TransferDao{
     }
 
 
-// if
+
 }
