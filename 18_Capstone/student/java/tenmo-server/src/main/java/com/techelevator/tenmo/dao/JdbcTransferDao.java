@@ -2,10 +2,12 @@ package com.techelevator.tenmo.dao;
 
 import com.techelevator.tenmo.model.Account;
 import com.techelevator.tenmo.model.Transfer;
+import org.springframework.http.HttpStatus;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.support.rowset.SqlRowSet;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.math.BigDecimal;
 import java.util.ArrayList;
@@ -33,14 +35,17 @@ public class JdbcTransferDao implements TransferDao{
     @Transactional
     @Override
     public Transfer sendTransfer(Transfer transfer) {
-        Transfer resultTransfer = addTransfer(transfer);
-        //updateFrom(transfer, transfer.getAmount());
+        Transfer resultTransfer = null;
         int result = updateFrom(transfer, transfer.getAmount());
+
         if (result == 0) {
             transfer.setTransferStatusId(3);
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Not Enough Money In Account.");
         } else {
           updateTo(transfer, transfer.getAmount());
-        } return resultTransfer;
+          resultTransfer = addTransfer(transfer);
+        }
+        return resultTransfer;
     }
 
     @Override
@@ -71,15 +76,15 @@ public class JdbcTransferDao implements TransferDao{
 
     }
 
+
+
     @Override
-    public List<Transfer> transferList(int transferId) {
+    public List<Transfer> transferList(int accountId) {
         List<Transfer> transfers = new ArrayList<>();
         String sql = "SELECT * " +
                 "FROM transfers " +
-                "INNER JOIN account_id ON transfers.account_from = accounts.account_id" +
-                "INNER JOIN account_id ON transfers.account_to = accounts.account_id" +
-                "WHERE account_id = ?;";
-        SqlRowSet results = jdbcTemplate.queryForRowSet(sql, transferId);
+                "WHERE account_from = ? OR account_to = ?;";
+        SqlRowSet results = jdbcTemplate.queryForRowSet(sql, accountId, accountId);
             while (results.next()) {
                 Transfer transfer = mapRowToTransfer(results);
                 transfers.add(transfer);

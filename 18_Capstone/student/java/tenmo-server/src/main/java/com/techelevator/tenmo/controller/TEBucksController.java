@@ -7,6 +7,7 @@ import com.techelevator.tenmo.model.Account;
 import com.techelevator.tenmo.model.Transfer;
 import com.techelevator.tenmo.model.User;
 import org.springframework.beans.factory.annotation.Required;
+import org.springframework.http.HttpStatus;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
@@ -31,8 +32,6 @@ public class TEBucksController {
     }
 
 
-
-
 //As an authenticated user of the system, I need to be able to see my Account Balance.
     //might need principal
     @RequestMapping(path = "balance", method = RequestMethod.GET)
@@ -48,6 +47,10 @@ public class TEBucksController {
     public List<User> getUsers() { return userDao.findAll(); }
 
 //2. A transfer includes the User IDs of the from and to users and the amount of TE Bucks.
+//3-6 The receiver's account balance is increased by the amount of the transfer.
+//The sender's account balance is decreased by the amount of the transfer.
+//I can't send more TE Bucks than I have in my account.
+
     @NotBlank()
     @RequestMapping(path = "transfer", method = RequestMethod.POST)
     public Transfer addTransfer(Principal principal, @Valid @RequestBody Transfer transfer) {
@@ -61,41 +64,27 @@ public class TEBucksController {
         transfer.setAccountFrom(accountDao.getAccount(userId).getAccountId());
         Transfer newTransfer = transferDao.sendTransfer(transfer);
 
-
-
         return newTransfer;
     }
-        //3-6 The receiver's account balance is increased by the amount of the transfer.
-        //The sender's account balance is decreased by the amount of the transfer.
-        //I can't send more TE Bucks than I have in my account.
+
 
     //As an authenticated user of the system, I need to be able to see transfers I have sent or received.
     //As an authenticated user of the system, I need to be able to retrieve the details of any transfer based upon the transfer ID.
 
-    @RequestMapping(path = "transferlist", method = RequestMethod.GET)
-    public List<Transfer> getTransfers(Principal principal) { return transferDao.findAll();
+    @RequestMapping(path = "transfer/list", method = RequestMethod.GET)
+    public List<Transfer> listTransfers(Principal principal) {
         int userId = userDao.findIdByUsername(principal.getName());
-        int transferId
+        int accountId = accountDao.getAccount(userId).getAccountId();
+
+        return transferDao.transferList(accountId);
     }
 
+    
+    //As an authenticated user of the system, I need to be able to retrieve the details of any transfer based upon the transfer ID.
+    @RequestMapping(path = "transfer/{id}", method = RequestMethod.GET)
+    public Transfer getTransfersById(@PathVariable int transferId)  { //throws Exception
+        return transferDao.getTransfer(transferId);
+    }
 
-//    @RequestMapping(path = "transfer/from", method = RequestMethod.PUT)
-//    public Account update(Principal principal, @Valid @RequestBody Account account) {
-//        int userId = userDao.findIdByUsername(principal.getName());
-//        //return accountDao.update(account, userId);
-//
-//    }
-    // if amount > account balance
-
-
-
-
-
-
-//    public int transferTo(BankAccount destinationAccount, int transferAmount) {
-//        withdraw(transferAmount);
-//        destinationAccount.deposit(transferAmount); //syntax: object.method
-//        return balance;
-//    }
 
 }
