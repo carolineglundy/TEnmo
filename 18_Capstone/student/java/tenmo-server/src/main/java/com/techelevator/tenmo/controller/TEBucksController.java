@@ -6,6 +6,7 @@ import com.techelevator.tenmo.dao.UserDao;
 import com.techelevator.tenmo.model.Account;
 import com.techelevator.tenmo.model.Transfer;
 import com.techelevator.tenmo.model.User;
+import com.techelevator.tenmo.security.TransferDetailsNotFoundException;
 import org.springframework.beans.factory.annotation.Required;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -81,10 +82,15 @@ public class TEBucksController {
 
     
     //As an authenticated user of the system, I need to be able to retrieve the details of any transfer based upon the transfer ID.
-    @RequestMapping(path = "transfer/{id}", method = RequestMethod.GET)
-    public Transfer getTransfersById(@PathVariable int transferId)  { //throws Exception
-        return transferDao.getTransfer(transferId);
+    @RequestMapping(path = "transfer/{transferId}", method = RequestMethod.GET)
+    public Transfer getTransfersById(@PathVariable int transferId) throws TransferDetailsNotFoundException { //throws Exception
+        Transfer transfer1 = transferDao.getTransfer(transferId);
+        if (transfer1 == null) {
+            throw new TransferDetailsNotFoundException();
+        } else {
+            return transfer1;
+        }
     }
-
+    //transfer id not found exception
 
 }
