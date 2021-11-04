@@ -6,6 +6,8 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.support.rowset.SqlRowSet;
 import org.springframework.stereotype.Component;
 
+import java.math.BigDecimal;
+
 @Component
 public class JdbcTransferDao implements TransferDao{
     private JdbcTemplate jdbcTemplate;
@@ -24,16 +26,33 @@ public class JdbcTransferDao implements TransferDao{
         }
         return transfer;
     }
-
+    // we need a big method that calls addTransfer and updateAccount
     @Override
     public Transfer addTransfer(Transfer newTransfer) {
-        String sql ="INSERT INTO transfer (transfer_type_id, transfer_status_id, account_from, account_to, amount)  " +
+        String sql ="INSERT INTO transfers (transfer_type_id, transfer_status_id, account_from, account_to, amount)  " +
                 "VALUES (?, ?, ?, ?, ?) RETURNING transfer_id;";
-        int newId = jdbcTemplate.queryForObject(sql, Integer.class, newTransfer.getTransferId(), newTransfer.getTransferStatusId(),
+        int newId = jdbcTemplate.queryForObject(sql, Integer.class, newTransfer.getTransferTypeId(), newTransfer.getTransferStatusId(),
                 newTransfer.getAccountFrom(), newTransfer.getAccountTo(), newTransfer.getAmount());
 
-
         return getTransfer(newId);
+    }
+
+
+    public void updateFrom(Transfer newTransfer, BigDecimal amount) {
+        String sql = "UPDATE accounts " +
+                "SET balance = balance - ? " +
+                "WHERE account_id = ? ; ";
+        jdbcTemplate.update(sql, amount, newTransfer.getAccountFrom());
+
+    }
+
+
+    public void updateTo(Transfer newTransfer, BigDecimal amount) {
+        String sql = "UPDATE accounts " +
+                "SET balance = balance + ?  " +
+                "WHERE account_id = ? ;";
+        jdbcTemplate.update(sql, amount, newTransfer.getAccountTo());
+
     }
 
 
@@ -53,5 +72,5 @@ public class JdbcTransferDao implements TransferDao{
     }
 
 
-
+// if
 }

@@ -7,4 +7,10 @@ import java.math.BigDecimal;
 public interface AccountDao {
 
     Account getAccount(int userId);
+
+    void update(Account account, int id);
+
+
+
+
 }

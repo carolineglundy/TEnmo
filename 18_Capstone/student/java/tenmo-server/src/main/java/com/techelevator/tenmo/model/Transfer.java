@@ -1,6 +1,9 @@
 package com.techelevator.tenmo.model;
 
+import javax.validation.constraints.Min;
 import javax.validation.constraints.NotBlank;
+import javax.validation.constraints.NotEmpty;
+import javax.validation.constraints.Size;
 import java.math.BigDecimal;
 
 public class Transfer {
@@ -9,9 +12,9 @@ public class Transfer {
     private int transferTypeId;
     private int transferStatusId;
     private int accountFrom;
-    @NotBlank(message = "Account transfer Id is required.")
+    @Min( value = 1, message = "The field 'accountTo' is required.")
     private int accountTo;
-    @NotBlank(message = "Amount is required.")
+    @Min( value = 1, message = "The field 'amount' is required.")
     private BigDecimal amount;
 
     public int getTransferId() { return transferId; }
@@ -42,6 +45,17 @@ public class Transfer {
         this.accountTo = accountTo;
         this.amount = amount;
     }
+    @Override
+    public String toString() {
+        return "Transfer{" +
+                "transferId=" + transferId +
+                ", transferTypeId='" + transferTypeId + '\'' +
+                ", transferStatusId=" + transferStatusId +
+                ", accountFrom=" + accountFrom +
+                ", accountTo=" + accountTo +
+                ", amount=" + amount +
+                '}';
 
+    }
 
 }

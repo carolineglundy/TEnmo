@@ -3,12 +3,15 @@ package com.techelevator.tenmo.controller;
 import com.techelevator.tenmo.dao.AccountDao;
 import com.techelevator.tenmo.dao.TransferDao;
 import com.techelevator.tenmo.dao.UserDao;
+import com.techelevator.tenmo.model.Account;
 import com.techelevator.tenmo.model.Transfer;
 import com.techelevator.tenmo.model.User;
+import org.springframework.beans.factory.annotation.Required;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import javax.validation.Valid;
+import javax.validation.constraints.NotBlank;
 import java.math.BigDecimal;
 import java.security.Principal;
 import java.util.List;
@@ -21,9 +24,10 @@ public class TEBucksController {
     private AccountDao accountDao;
     private TransferDao transferDao;
 
-    public TEBucksController(UserDao userDao, AccountDao accountDao) {
+    public TEBucksController(UserDao userDao, AccountDao accountDao, TransferDao transferDao) {
         this.userDao = userDao;
         this.accountDao = accountDao;
+        this.transferDao = transferDao;
     }
 
 
@@ -44,20 +48,36 @@ public class TEBucksController {
     public List<User> getUsers() { return userDao.findAll(); }
 
 //2. A transfer includes the User IDs of the from and to users and the amount of TE Bucks.
-    @RequestMapping(path = "transfer/", method = RequestMethod.POST)
-    public Transfer addTransfer(Principal principal,@Valid @RequestBody Transfer transfer) {
+    @NotBlank()
+    @RequestMapping(path = "transfer", method = RequestMethod.POST)
+    public Transfer addTransfer(Principal principal, @Valid @RequestBody Transfer transfer) {
+        transfer.setTransferStatusId(2);
+        transfer.setTransferTypeId(2);
 
         int accountTo = transfer.getAccountTo();
         BigDecimal amount = transfer.getAmount();
-
         int userId = userDao.findIdByUsername(principal.getName());
 
         transfer.setAccountFrom(accountDao.getAccount(userId).getAccountId());
+        Transfer newTransfer = transferDao.addTransfer(transfer);
 
-        return transferDao.addTransfer(transfer);
+        transferDao.updateFrom(transfer, newTransfer.getAmount());
+        transferDao.updateTo(transfer, newTransfer.getAmount());
+
+        return newTransfer;
     }
+        //3-6 The receiver's account balance is increased by the amount of the transfer.
+        //The sender's account balance is decreased by the amount of the transfer.
+        //I can't send more TE Bucks than I have in my account.
 
 
+//    @RequestMapping(path = "transfer/from", method = RequestMethod.PUT)
+//    public Account update(Principal principal, @Valid @RequestBody Account account) {
+//        int userId = userDao.findIdByUsername(principal.getName());
+//        //return accountDao.update(account, userId);
+//
+//    }
+    // if amount > account balance
 
 
 
