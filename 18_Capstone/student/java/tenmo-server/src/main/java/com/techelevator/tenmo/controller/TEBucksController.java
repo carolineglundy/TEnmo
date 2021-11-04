@@ -22,6 +22,9 @@ import java.util.List;
 @RestController
 public class TEBucksController {
 
+    private static final int TRANSFER_STATUS_APPROVED = 2;
+    private static final int TRANSFER_TYPE_SEND = 2;
+
     private UserDao userDao;
     private AccountDao accountDao;
     private TransferDao transferDao;
@@ -32,9 +35,12 @@ public class TEBucksController {
         this.transferDao = transferDao;
     }
 
-
-//As an authenticated user of the system, I need to be able to see my Account Balance.
-    //might need principal
+    /**
+     * Return User Account Balance
+     *
+     * @param principal - user who is logged in
+     * @return current balance of the logged in user
+     */
     @RequestMapping(path = "balance", method = RequestMethod.GET)
     public BigDecimal getBalance(Principal principal) {
         int userId = userDao.findIdByUsername(principal.getName());
@@ -43,20 +49,27 @@ public class TEBucksController {
         return currentBalance;
     }
 
-    //1. I should be able to choose from a list of users to send TE Bucks to.
+    /**
+     * Return All Users
+     *
+     *
+     * @return a list of users in the system
+     */
     @RequestMapping(path = "list", method = RequestMethod.GET)
     public List<User> getUsers() { return userDao.findAll(); }
 
-//2. A transfer includes the User IDs of the from and to users and the amount of TE Bucks.
-//3-6 The receiver's account balance is increased by the amount of the transfer.
-//The sender's account balance is decreased by the amount of the transfer.
-//I can't send more TE Bucks than I have in my account.
-
+    /**
+     * Send a Transfer to Another User and Updating Both Account Balances
+     *
+     * @param principal - the logged in user
+     * @param transfer - the transfer to send
+     * @return the transfer object that was created
+     */
     @NotBlank()
     @RequestMapping(path = "transfer", method = RequestMethod.POST)
     public Transfer addTransfer(Principal principal, @Valid @RequestBody Transfer transfer) {
-        transfer.setTransferStatusId(2);
-        transfer.setTransferTypeId(2);
+        transfer.setTransferStatusId(TRANSFER_STATUS_APPROVED);
+        transfer.setTransferTypeId(TRANSFER_TYPE_SEND);
 
         int accountTo = transfer.getAccountTo();
         BigDecimal amount = transfer.getAmount();
@@ -68,10 +81,12 @@ public class TEBucksController {
         return newTransfer;
     }
 
-
-    //As an authenticated user of the system, I need to be able to see transfers I have sent or received.
-    //As an authenticated user of the system, I need to be able to retrieve the details of any transfer based upon the transfer ID.
-
+    /**
+     * Return all Transfers That Have Been Sent or Received for the Logged In User
+     *
+     * @param principal - the logged in user
+     * @return - all the transfer details for the logged in user
+     */
     @RequestMapping(path = "transfer/list", method = RequestMethod.GET)
     public List<Transfer> listTransfers(Principal principal) {
         int userId = userDao.findIdByUsername(principal.getName());
@@ -80,17 +95,21 @@ public class TEBucksController {
         return transferDao.transferList(accountId);
     }
 
-    
-    //As an authenticated user of the system, I need to be able to retrieve the details of any transfer based upon the transfer ID.
+    /**
+     * Get a Specific Transfer by Id
+     *
+     * @param transferId - the transfer id to return
+     * @return - the transfer details with that id
+     */
     @RequestMapping(path = "transfer/{transferId}", method = RequestMethod.GET)
-    public Transfer getTransfersById(@PathVariable int transferId) throws TransferDetailsNotFoundException { //throws Exception
-        Transfer transfer1 = transferDao.getTransfer(transferId);
-        if (transfer1 == null) {
+    public Transfer getTransfersById(@PathVariable int transferId) throws TransferDetailsNotFoundException {
+        Transfer transfer = transferDao.getTransfer(transferId);
+        if (transfer == null) {
             throw new TransferDetailsNotFoundException();
         } else {
-            return transfer1;
+            return transfer;
         }
     }
-    //transfer id not found exception
+
 
 }
