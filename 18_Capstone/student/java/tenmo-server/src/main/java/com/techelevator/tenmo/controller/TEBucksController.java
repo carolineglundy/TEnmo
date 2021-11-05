@@ -71,11 +71,14 @@ public class TEBucksController {
         transfer.setTransferStatusId(TRANSFER_STATUS_APPROVED);
         transfer.setTransferTypeId(TRANSFER_TYPE_SEND);
 
-        int accountTo = transfer.getAccountTo();
+        Account fromAccount = accountDao.getAccount(userDao.findIdByUsername(principal.getName()));
+
+        Account accountTo = accountDao.getAccount(transfer.getAccountTo());
         BigDecimal amount = transfer.getAmount();
         int userId = userDao.findIdByUsername(principal.getName());
 
-        transfer.setAccountFrom(accountDao.getAccount(userId).getAccountId());
+        transfer.setAccountTo(accountTo.getAccountId());
+        transfer.setAccountFrom(fromAccount.getAccountId());
         Transfer newTransfer = transferDao.sendTransfer(transfer);
 
         return newTransfer;

@@ -10,6 +10,7 @@ public class Transfer {
     private int accountTo;
     private BigDecimal amount;
 
+
     public int getTransferId() { return transferId; }
     public void setTransferId(int transferId) { this.transferId = transferId; }
 

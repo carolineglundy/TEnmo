@@ -1,14 +1,15 @@
 package com.techelevator.tenmo.services;
 
 import com.techelevator.tenmo.model.Transfer;
-//import org.springframework.http.HttpEntity;
-//import org.springframework.http.HttpMethod;
+
+import com.techelevator.tenmo.model.User;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.client.ResourceAccessException;
+import org.springframework.web.client.RestClientResponseException;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.http.*;
-//import com.techelevator.util.BasicLogger;
 import java.math.BigDecimal;
-import java.net.http.HttpHeaders;
+
 
 public class TEBucksService {
     private String baseUrl;
@@ -16,16 +17,40 @@ public class TEBucksService {
 
     public TEBucksService(String url) { this.baseUrl = url; }
 
-    private BigDecimal getBalance (String token){
+    public BigDecimal getBalance(String token){
         HttpEntity<?> entity = getHttpEntity(token);
         BigDecimal balance = BigDecimal.ZERO;
         try{
             ResponseEntity<BigDecimal> response = restTemplate.exchange(baseUrl+"balance", HttpMethod.GET,entity,BigDecimal.class);
             balance = response.getBody();
         } catch (Exception e) {
-            e.printStackTrace();
+            System.out.println("Error getting balance: " + e.getMessage());
         }
         return balance;
+    }
+
+    public User[] listUsers(String token) {
+        User[] users = null;
+        HttpEntity<?> entity = getHttpEntity(token);
+       try {
+           ResponseEntity<User[]> response = restTemplate.exchange(baseUrl + "list", HttpMethod.GET, entity, User[].class);
+           users = response.getBody();
+       } catch (RestClientResponseException | ResourceAccessException e) {
+           System.out.println("Error getting User List: " + e.getMessage());
+       }  return users;
+    }
+
+    public Transfer sendTransfer(String token, Transfer newTransfer) {
+        Transfer returnedTransfer = null;
+        HttpEntity<?> entity = getHttpEntityTransfer(token, newTransfer);
+        try {
+            returnedTransfer = restTemplate.postForObject(baseUrl + "transfer", entity, Transfer.class);
+        } catch (RestClientResponseException e) {
+            System.out.println(("Error returned from server: "+e.getRawStatusCode()+": "+e.getStatusText()));
+        } catch (ResourceAccessException e) {
+            System.out.println("Error: Couldn't reach server.");
+        }
+        return returnedTransfer;
     }
 
     private HttpEntity<?> getHttpEntity(String token) {
@@ -35,10 +60,17 @@ public class TEBucksService {
         return entity;
     }
 
-    private HttpEntity<?> makeTransferEntity(Transfer transfer) {
-        HttpHeaders headers = new HttpHeaders();
-        headers.setContentType(MediaType.APPLICATION_JSON);
-        headers.setBearerAuth(authToken);
-        return new HttpEntity<>(reservation, headers);
+    private HttpEntity<Transfer> getHttpEntityTransfer(String token, Transfer transfer) {
+        HttpHeaders header = new HttpHeaders();
+        header.setBearerAuth(token);
+        HttpEntity<Transfer> entity = new HttpEntity(transfer, header);
+        return entity;
     }
+
+//    private HttpEntity<?> makeTransferEntity(Transfer transfer) {
+//        HttpHeaders headers = new HttpHeaders();
+//        headers.setContentType(MediaType.APPLICATION_JSON);
+//        headers.setBearerAuth(authToken);
+//        return new HttpEntity<>(transfer, headers);
+//    }
 }
