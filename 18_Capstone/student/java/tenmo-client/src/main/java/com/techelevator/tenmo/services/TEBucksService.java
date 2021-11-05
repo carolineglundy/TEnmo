@@ -23,7 +23,7 @@ public class TEBucksService {
         try{
             ResponseEntity<BigDecimal> response = restTemplate.exchange(baseUrl+"balance", HttpMethod.GET,entity,BigDecimal.class);
             balance = response.getBody();
-        } catch (Exception e) {
+        } catch (RestClientResponseException | ResourceAccessException e) {
             System.out.println("Error getting balance: " + e.getMessage());
         }
         return balance;
@@ -51,6 +51,29 @@ public class TEBucksService {
             System.out.println("Error: Couldn't reach server.");
         }
         return returnedTransfer;
+    }
+
+    public Transfer[] viewTransfers(String token) {
+        Transfer[] transfers = null;
+        HttpEntity<?> entity = getHttpEntity(token);
+        try {
+            ResponseEntity<Transfer[]> response = restTemplate.exchange(baseUrl +"transfer/list", HttpMethod.GET, entity, Transfer[].class);
+            transfers = response.getBody();
+        } catch (RestClientResponseException | ResourceAccessException e) {
+            System.out.println("Error getting Transfer List: " + e.getMessage());
+        }  return transfers;
+    }
+
+    public Transfer viewTransferById(String token, int transferId) {
+        Transfer transfer = null;
+        HttpEntity<?> entity = getHttpEntity(token);
+        try {
+            ResponseEntity<Transfer> response = restTemplate.exchange(baseUrl +"transfer/"+transferId, HttpMethod.GET, entity, Transfer.class);
+            transfer  = response.getBody();
+        } catch (RestClientResponseException | ResourceAccessException e) {
+            System.out.println("Error getting Transfer Id: " + e.getMessage());
+        }  return transfer;
+
     }
 
     private HttpEntity<?> getHttpEntity(String token) {

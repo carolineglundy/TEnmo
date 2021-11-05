@@ -7,11 +7,11 @@ import java.util.List;
 
 public interface TransferDao {
 
-    Transfer addTransfer(Transfer transfer);
+    Transfer addTransfer(Transfer transfer) throws Exception;
 
     Transfer getTransfer(int transferId);
 
-    Transfer sendTransfer(Transfer transfer);
+    Transfer sendTransfer(Transfer transfer) throws Exception;
 
     List<Transfer> transferList(int transferId);
 

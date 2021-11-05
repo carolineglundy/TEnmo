@@ -33,12 +33,12 @@ public class Transfer {
     @Override
     public String toString() {
         return "Transfer{" +
-                "transferId=" + transferId +
-                ", transferTypeId='" + transferTypeId + '\'' +
-                ", transferStatusId=" + transferStatusId +
-                ", accountFrom=" + accountFrom +
-                ", accountTo=" + accountTo +
-                ", amount=" + amount +
+                "\n"+"/transferId:" + transferId +
+                "\n"+"transferTypeId:" + transferTypeId +
+                "\n"+"transferStatusId:" + transferStatusId +
+                "\n"+"accountFrom:" + accountFrom +
+                "\n"+"accountTo:" + accountTo +
+                "\n"+"amount:" + amount +
                 '}';
 
     }

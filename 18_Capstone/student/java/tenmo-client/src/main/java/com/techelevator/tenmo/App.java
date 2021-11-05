@@ -10,6 +10,7 @@ import com.techelevator.tenmo.services.TEBucksService;
 import com.techelevator.view.ConsoleService;
 
 import java.math.BigDecimal;
+import java.sql.SQLOutput;
 
 public class App {
 
@@ -80,8 +81,16 @@ private static final String API_BASE_URL = "http://localhost:8080/";
 	}
 
 	private void viewTransferHistory() {
-		// TODO Auto-generated method stub
-		
+		Transfer[] transferList = teBucksService.viewTransfers((currentUser.getToken()));
+		console.printTransfers(transferList);
+		int transferId = console.getUserInputInteger("Please enter transfer ID to view details (0 to cancel): ");
+			if (transferId == 0) {
+				mainMenu();
+			}else{
+				Transfer transfer = teBucksService.viewTransferById(currentUser.getToken(), transferId);
+				console.printTransferDetails(transfer);
+
+			}
 	}
 
 	private void viewPendingRequests() {

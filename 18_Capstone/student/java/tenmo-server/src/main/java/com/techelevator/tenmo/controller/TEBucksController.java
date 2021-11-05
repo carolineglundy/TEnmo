@@ -11,6 +11,7 @@ import org.springframework.beans.factory.annotation.Required;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.server.ResponseStatusException;
 
 import javax.validation.Valid;
 import javax.validation.constraints.NotBlank;
@@ -67,17 +68,22 @@ public class TEBucksController {
      */
     @NotBlank()
     @RequestMapping(path = "transfer", method = RequestMethod.POST)
-    public Transfer addTransfer(Principal principal, @Valid @RequestBody Transfer transfer) {
+    public Transfer addTransfer(Principal principal, @Valid @RequestBody Transfer transfer) throws Exception {
         transfer.setTransferStatusId(TRANSFER_STATUS_APPROVED);
         transfer.setTransferTypeId(TRANSFER_TYPE_SEND);
 
         Account fromAccount = accountDao.getAccount(userDao.findIdByUsername(principal.getName()));
-
-        Account accountTo = accountDao.getAccount(transfer.getAccountTo());
+            if (fromAccount == null){
+                throw new ResponseStatusException(HttpStatus.NOT_FOUND,"Your account does not exist");
+            }
+        Account toAccount = accountDao.getAccount(transfer.getAccountTo());
+        if (toAccount == null){
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND,"Your friend's account: "+toAccount.getAccountId()+" does not exist");
+        }
         BigDecimal amount = transfer.getAmount();
         int userId = userDao.findIdByUsername(principal.getName());
 
-        transfer.setAccountTo(accountTo.getAccountId());
+        transfer.setAccountTo(toAccount.getAccountId());
         transfer.setAccountFrom(fromAccount.getAccountId());
         Transfer newTransfer = transferDao.sendTransfer(transfer);
 
