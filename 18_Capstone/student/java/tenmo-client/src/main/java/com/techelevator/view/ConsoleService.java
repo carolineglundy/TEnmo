@@ -93,8 +93,10 @@ public class ConsoleService {
 		System.out.println("--------------------------------------------");
 		User user = null;
 		for (Transfer transfer : transfers) {
-			System.out.println(transfer.getTransferId() + "    From:     " +  transfer.getAccountFromUsername() + "     $"+transfer.getAmount());
-			System.out.println(transfer.getTransferId() + "      To:     " +  transfer.getAccountToUsername() + "     $"+transfer.getAmount());
+		String displayTransfers = String.format("%5s",transfer.getTransferId()) + " From:"+ String.format("%10s",transfer.getAccountFromUsername()) +" $"+ String.format("%5s",transfer.getAmount());
+			String displayFromTransfer =  String.format("%5s",transfer.getTransferId()) + " From:"+ String.format("%10s",transfer.getAccountToUsername()) +" $"+ String.format("%5s",transfer.getAmount());
+			System.out.println(displayTransfers);
+			System.out.println(displayFromTransfer);
 			System.out.println("--------------------------------------------" + "\n");
 		}
 

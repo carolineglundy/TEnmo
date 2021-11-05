@@ -43,11 +43,14 @@ public class TEBucksService {
     public Transfer sendTransfer(String token, Transfer newTransfer) {
         Transfer returnedTransfer = null;
         HttpEntity<?> entity = getHttpEntityTransfer(token, newTransfer);
+
         try {
             returnedTransfer = restTemplate.postForObject(baseUrl + "transfer", entity, Transfer.class);
         } catch (RestClientResponseException e) {
-            System.out.println(("Error returned from server: "+e.getRawStatusCode()+": "+e.getStatusText()));
-        } catch (ResourceAccessException e) {
+            if (e.getRawStatusCode()== 400) {
+            System.out.println("The transfer could not go through. Please, try again.");
+            } else {   System.out.println(("Error returned from server: "+e.getMessage()+": "));
+        } } catch (ResourceAccessException e) {
             System.out.println("Error: Couldn't reach server.");
         }
         return returnedTransfer;

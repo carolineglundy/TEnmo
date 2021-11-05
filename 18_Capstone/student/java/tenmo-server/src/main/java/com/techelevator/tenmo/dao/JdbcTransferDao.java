@@ -54,7 +54,7 @@ public class JdbcTransferDao implements TransferDao{
     // we need a big method that calls addTransfer and updateAccount
     @Transactional
     @Override
-    public Transfer sendTransfer(Transfer transfer) throws Exception {
+    public Transfer sendTransfer(Transfer transfer) throws ResponseStatusException {
         Transfer resultTransfer = null;
         int result = updateFrom(transfer, transfer.getAmount());
 
