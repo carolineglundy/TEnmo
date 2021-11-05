@@ -59,6 +59,8 @@ public class TEBucksController {
     @RequestMapping(path = "list", method = RequestMethod.GET)
     public List<User> getUsers() { return userDao.findAll(); }
 
+
+
     /**
      * Send a Transfer to Another User and Updating Both Account Balances
      *
@@ -112,7 +114,7 @@ public class TEBucksController {
      */
     @RequestMapping(path = "transfer/{transferId}", method = RequestMethod.GET)
     public Transfer getTransfersById(@PathVariable int transferId) throws TransferDetailsNotFoundException {
-        Transfer transfer = transferDao.getTransfer(transferId);
+        Transfer transfer = transferDao.getTransferWithUsername(transferId);
         if (transfer == null) {
             throw new TransferDetailsNotFoundException();
         } else {

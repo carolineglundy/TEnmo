@@ -14,6 +14,7 @@ public class Accounts {
     public int getAccountId() {
         return accountId;
     }
+    public int getAccountById(int accountId) {return accountId;}
 
     public void setAccountId(int accountId) {
         this.accountId = accountId;

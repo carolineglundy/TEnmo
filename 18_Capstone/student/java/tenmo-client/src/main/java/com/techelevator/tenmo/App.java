@@ -83,11 +83,14 @@ private static final String API_BASE_URL = "http://localhost:8080/";
 	private void viewTransferHistory() {
 		Transfer[] transferList = teBucksService.viewTransfers((currentUser.getToken()));
 		console.printTransfers(transferList);
-		int transferId = console.getUserInputInteger("Please enter transfer ID to view details (0 to cancel): ");
-			if (transferId == 0) {
+		int transferId = console.getUserInputInteger("Please enter transfer ID to view details (0 to cancel) ");
+			if (transferId == 0 ) {
 				mainMenu();
-			}else{
+			} else{
 				Transfer transfer = teBucksService.viewTransferById(currentUser.getToken(), transferId);
+				if (transfer == null) {
+					mainMenu();
+				}
 				console.printTransferDetails(transfer);
 
 			}
@@ -173,5 +176,5 @@ private static final String API_BASE_URL = "http://localhost:8080/";
 		String username = console.getUserInput("Username");
 		String password = console.getUserInput("Password");
 		return new UserCredentials(username, password);
-	}
+	} 
 }

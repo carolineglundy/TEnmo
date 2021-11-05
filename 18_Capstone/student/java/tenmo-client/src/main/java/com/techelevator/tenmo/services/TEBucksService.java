@@ -70,8 +70,11 @@ public class TEBucksService {
         try {
             ResponseEntity<Transfer> response = restTemplate.exchange(baseUrl +"transfer/"+transferId, HttpMethod.GET, entity, Transfer.class);
             transfer  = response.getBody();
+
         } catch (RestClientResponseException | ResourceAccessException e) {
-            System.out.println("Error getting Transfer Id: " + e.getMessage());
+            System.out.println("\n" +"That transfer Id " +transferId + "does not exist");
+            System.out.println();
+            System.out.println("Error getting Transfer ID: " + e.getMessage());
         }  return transfer;
 
     }
@@ -90,10 +93,4 @@ public class TEBucksService {
         return entity;
     }
 
-//    private HttpEntity<?> makeTransferEntity(Transfer transfer) {
-//        HttpHeaders headers = new HttpHeaders();
-//        headers.setContentType(MediaType.APPLICATION_JSON);
-//        headers.setBearerAuth(authToken);
-//        return new HttpEntity<>(transfer, headers);
-//    }
 }

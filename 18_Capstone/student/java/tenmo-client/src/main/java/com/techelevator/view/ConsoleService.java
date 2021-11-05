@@ -89,19 +89,22 @@ public class ConsoleService {
 
 	public void printTransfers(Transfer[] transfers) {
 		System.out.println("--------------------------------------------");
-		System.out.println("Transfers ID          From/To                Amount");
+		System.out.println("Transfers ID      From/To        Amount");
 		System.out.println("--------------------------------------------");
+		User user = null;
 		for (Transfer transfer : transfers) {
-			System.out.println(transfer.getTransferId() + "    From:     " + transfer.getAccountFrom()+ "      :     $ "+transfer.getAmount());
-			System.out.println(transfer.getTransferId() + "      To:     " + transfer.getAccountTo()+ "      :     $ "+transfer.getAmount());
+			System.out.println(transfer.getTransferId() + "    From:     " +  transfer.getAccountFromUsername() + "     $"+transfer.getAmount());
+			System.out.println(transfer.getTransferId() + "      To:     " +  transfer.getAccountToUsername() + "     $"+transfer.getAmount());
+			System.out.println("--------------------------------------------" + "\n");
 		}
-		System.out.println("--------------------------------------------" + "\n");
+
 	}
 
 	public void printTransferDetails(Transfer transfer) {
 		System.out.println("--------------------------------------------");
 		System.out.println("Transfer Details                            ");
 		System.out.println("--------------------------------------------");
+
 		System.out.println(transfer.toString());
 	}
 

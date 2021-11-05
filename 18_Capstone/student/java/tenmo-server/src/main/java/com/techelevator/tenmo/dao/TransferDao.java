@@ -19,6 +19,8 @@ public interface TransferDao {
 
     void updateTo(Transfer newTransfer, BigDecimal amount);
 
+    Transfer getTransferWithUsername(int transferId);
+
 
 
 }

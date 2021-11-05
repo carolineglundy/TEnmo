@@ -17,6 +17,44 @@ public class Transfer {
     @Min( value = 1, message = "The field 'amount' is required.")
     private BigDecimal amount;
 
+
+    private String accountFromUsername;
+    private String accountToUsername;
+    private String transferType;
+    private String transferStatus;
+
+    public String getTransferType() {
+        return transferType;
+    }
+
+    public void setTransferType(String transferType) {
+        this.transferType = transferType;
+    }
+
+    public String getTransferStatus() {
+        return transferStatus;
+    }
+
+    public void setTransferStatus(String transferStatus) {
+        this.transferStatus = transferStatus;
+    }
+
+    public String getAccountFromUsername() {
+        return accountFromUsername;
+    }
+
+    public void setAccountFromUsername(String accountFromUsername) {
+        this.accountFromUsername = accountFromUsername;
+    }
+
+    public String getAccountToUsername() {
+        return accountToUsername;
+    }
+
+    public void setAccountToUsername(String accountToUsername) {
+        this.accountToUsername = accountToUsername;
+    }
+
     public int getTransferId() { return transferId; }
     public void setTransferId(int transferId) { this.transferId = transferId; }
 
