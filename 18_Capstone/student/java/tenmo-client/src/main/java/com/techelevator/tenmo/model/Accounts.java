@@ -20,7 +20,7 @@ public class Accounts {
         this.accountId = accountId;
     }
 
-    public int getUserId() {
+    public int getUserId(Integer id) {
         return userId;
     }
 

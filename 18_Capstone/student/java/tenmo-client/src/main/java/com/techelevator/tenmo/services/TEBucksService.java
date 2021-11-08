@@ -11,6 +11,7 @@ import org.springframework.http.*;
 import java.math.BigDecimal;
 
 
+
 public class TEBucksService {
     private String baseUrl;
     private RestTemplate restTemplate = new RestTemplate();
@@ -45,9 +46,9 @@ public class TEBucksService {
         HttpEntity<?> entity = getHttpEntityTransfer(token, newTransfer);
 
         try {
-            returnedTransfer = restTemplate.postForObject(baseUrl + "transfer", entity, Transfer.class);
+            returnedTransfer = restTemplate.postForObject(baseUrl + "transfer/send", entity, Transfer.class);
         } catch (RestClientResponseException e) {
-            if (e.getRawStatusCode()== 400) {
+            if (e.getRawStatusCode()== 400 || e.getRawStatusCode() == 500) {
             System.out.println("The transfer could not go through. Please, try again.");
             } else {   System.out.println(("Error returned from server: "+e.getMessage()+": "));
         } } catch (ResourceAccessException e) {
@@ -55,8 +56,24 @@ public class TEBucksService {
         }
         return returnedTransfer;
     }
+    public Transfer requestTransfer(String token, Transfer newTransfer) {
+        Transfer returnedTransfer = null;
+        HttpEntity<?> entity = getHttpEntityTransfer(token, newTransfer);
 
-    public Transfer[] viewTransfers(String token) {
+        try {
+            returnedTransfer = restTemplate.postForObject(baseUrl + "transfer/request", entity, Transfer.class);
+        } catch (RestClientResponseException e) {
+            if (e.getRawStatusCode()== 400 || e.getRawStatusCode() == 500) {
+                System.out.println("The transfer could not go through. Please, try again: " + e.getMessage());
+            } else {   System.out.println(("Error returned from server: "+e.getMessage()+": "));
+            } } catch (ResourceAccessException e) {
+            System.out.println("Error: Couldn't reach server.");
+        }
+        return returnedTransfer;
+    }
+
+
+    public Transfer[] viewApprovedTransfers(String token) {
         Transfer[] transfers = null;
         HttpEntity<?> entity = getHttpEntity(token);
         try {
@@ -66,6 +83,38 @@ public class TEBucksService {
             System.out.println("Error getting Transfer List: " + e.getMessage());
         }  return transfers;
     }
+    public Transfer[] viewPendingTransfers(String token) {
+        Transfer[] transfers = null;
+        HttpEntity<?> entity = getHttpEntity(token);
+        try {
+            ResponseEntity<Transfer[]> response = restTemplate.exchange(baseUrl +"transfer/pending/list", HttpMethod.GET, entity, Transfer[].class);
+            transfers = response.getBody();
+        } catch (RestClientResponseException | ResourceAccessException e) {
+            System.out.println("Error getting Transfer List: " + e.getMessage());
+        }   if (transfers.length == 0 || transfers == null) {
+            System.out.println("NO PENDING TRANSACTIONS");
+        }
+
+        return transfers;
+    }
+
+    public boolean updateTransfer(String token, Transfer transfer, int choiceId) {
+        HttpEntity<?> entity = getHttpEntityTransfer(token, transfer);
+        boolean success = false;
+        try {
+            restTemplate.put(baseUrl + "transfer/status/" + choiceId, entity);
+            success = true;
+            if (choiceId == 1) {
+                System.out.println("The transfer request to " + transfer.getAccountToUsername() + " from " + transfer.getAccountFromUsername() + " was APPROVED.");
+            } else {
+                System.out.println("The transfer request to " + transfer.getAccountToUsername() + " from " + transfer.getAccountFromUsername() + " was REJECTED.");
+            }
+        } catch (RestClientResponseException | ResourceAccessException e) {
+            System.out.println("Error sending Transfer: " + e.getMessage());
+        }
+        return success;
+    }
+
 
     public Transfer viewTransferById(String token, int transferId) {
         Transfer transfer = null;
@@ -74,10 +123,13 @@ public class TEBucksService {
             ResponseEntity<Transfer> response = restTemplate.exchange(baseUrl +"transfer/"+transferId, HttpMethod.GET, entity, Transfer.class);
             transfer  = response.getBody();
 
-        } catch (RestClientResponseException | ResourceAccessException e) {
-            System.out.println("\n" +"That transfer Id " +transferId + "does not exist");
-            System.out.println();
+        } catch (RestClientResponseException e) {  //| ResourceAccessException
+            if (e.getRawStatusCode() == 404) {
+                System.out.println("\n" +"That transfer Id " +transferId + " does not exist");
+            } else {
             System.out.println("Error getting Transfer ID: " + e.getMessage());
+            } } catch (ResourceAccessException e) {
+                System.out.println("Error: Couldn't reach server.");
         }  return transfer;
 
     }
@@ -91,6 +143,7 @@ public class TEBucksService {
 
     private HttpEntity<Transfer> getHttpEntityTransfer(String token, Transfer transfer) {
         HttpHeaders header = new HttpHeaders();
+        header.setContentType(MediaType.APPLICATION_JSON);
         header.setBearerAuth(token);
         HttpEntity<Transfer> entity = new HttpEntity(transfer, header);
         return entity;

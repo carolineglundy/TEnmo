@@ -1,16 +1,15 @@
 package com.techelevator.tenmo;
 
-import com.techelevator.tenmo.model.AuthenticatedUser;
-import com.techelevator.tenmo.model.Transfer;
-import com.techelevator.tenmo.model.User;
-import com.techelevator.tenmo.model.UserCredentials;
+import com.techelevator.tenmo.model.*;
 import com.techelevator.tenmo.services.AuthenticationService;
 import com.techelevator.tenmo.services.AuthenticationServiceException;
 import com.techelevator.tenmo.services.TEBucksService;
 import com.techelevator.view.ConsoleService;
 
 import java.math.BigDecimal;
-import java.sql.SQLOutput;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 
 public class App {
 
@@ -81,9 +80,9 @@ private static final String API_BASE_URL = "http://localhost:8080/";
 	}
 
 	private void viewTransferHistory() {
-		Transfer[] transferList = teBucksService.viewTransfers((currentUser.getToken()));
+		Transfer[] transferList = teBucksService.viewApprovedTransfers((currentUser.getToken()));
 		console.printTransfers(transferList);
-		int transferId = console.getUserInputInteger("Please enter transfer ID to view details (0 to cancel) ");
+		 int transferId = console.getUserInputNumber("Please enter transfer ID to view details (0 to cancel) ").intValue();
 			if (transferId == 0 ) {
 				mainMenu();
 			} else{
@@ -97,16 +96,48 @@ private static final String API_BASE_URL = "http://localhost:8080/";
 	}
 
 	private void viewPendingRequests() {
-		// TODO Auto-generated method stub
-		
+		Transfer[] transferArray = teBucksService.viewPendingTransfers((currentUser.getToken()));
+		List<Transfer> transferList = new ArrayList<Transfer>(Arrays.asList(transferArray));
+		for (Transfer transfer : transferList) {
+			console.printTransfer(transfer);
+			int choiceId = console.getUserInputNumber("1: Approve\n" +
+					"2: Reject\n" +
+					"0: Don't approve or reject\n" +
+					"---------\n" +
+					"Please choose an option: ").intValue();
+			if (choiceId == 0) {
+			}
+			else if (choiceId < 0 || choiceId > 2) {
+				System.out.println("\n"+"Please choose (0 1 OR 2): The choice you entered " + choiceId + " is not valid.");
+				console.printTransferList(transferList);
+				choiceId = console.getUserInputNumber("\n" +"1: Approve\n" +
+						"2: Reject\n" +
+						"0: Don't approve or reject\n" +
+						"---------\n" +
+						"Please choose an option: ").intValue();
+			}
+				else if (choiceId == 2) {
+					//set status to rejected and no balances change
+						teBucksService.updateTransfer(currentUser.getToken(), transfer, choiceId);
+					transferList.remove(transfer);
+					break;
+				} else {
+					// set status to approved and balances change
+					teBucksService.updateTransfer(currentUser.getToken(), transfer, choiceId);
+					transferList.remove(transfer);
+					break;
+				}
+			}
 	}
 
 	private void sendBucks() {
-		// TODO Auto-generated method stub
 		User[] userList = teBucksService.listUsers(currentUser.getToken());
 		console.printUsers(userList);
-		int userId = console.getUserInputInteger("Enter ID of user you are sending to (0 to cancel)");
-		BigDecimal amount = BigDecimal.valueOf(console.getUserInputInteger("Enter amount"));
+		int userId = console.getUserInputNumber("Enter ID of user you are sending to (0 to cancel)").intValue();
+		if (userId == 0) {
+			mainMenu();
+		}
+		BigDecimal amount = BigDecimal.valueOf(console.getUserInputNumber("Enter amount"));
 		Transfer newTransfer = new Transfer();
 		newTransfer.setAccountTo(userId);
 		newTransfer.setAmount(amount);
@@ -114,8 +145,19 @@ private static final String API_BASE_URL = "http://localhost:8080/";
 	}
 
 	private void requestBucks() {
-		// TODO Auto-generated method stub
-		
+		//System.out.println("No");
+		User[] userList = teBucksService.listUsers(currentUser.getToken());
+		console.printUsers(userList);
+		int userId = console.getUserInputNumber("Enter ID of user you are sending to (0 to cancel)").intValue();
+		if (userId == 0) {
+			mainMenu();
+		}
+		BigDecimal amount = BigDecimal.valueOf(console.getUserInputNumber("Enter amount"));
+		Transfer newTransfer = new Transfer();
+		newTransfer.setAccountFrom(userId);
+
+		newTransfer.setAmount(amount);
+		Transfer transferEnteredByUser = teBucksService.requestTransfer(currentUser.getToken(), newTransfer);
 	}
 	
 	private void exitProgram() {
@@ -160,8 +202,9 @@ private static final String API_BASE_URL = "http://localhost:8080/";
 	private void login() {
 		System.out.println("Please log in");
 		currentUser = null;
-		while (currentUser == null) //will keep looping until user is logged in
-		{
+		//changed this because it was annoying if you accidentally clicked login and didn't register you had to shut to program down
+		//while (currentUser == null) //will keep looping until user is logged in
+		//{
 			UserCredentials credentials = collectUserCredentials();
 		    try {
 				currentUser = authenticationService.login(credentials);
@@ -169,7 +212,7 @@ private static final String API_BASE_URL = "http://localhost:8080/";
 				System.out.println("LOGIN ERROR: "+e.getMessage());
 				System.out.println("Please attempt to login again.");
 			}
-		}
+		//}
 	}
 	
 	private UserCredentials collectUserCredentials() {

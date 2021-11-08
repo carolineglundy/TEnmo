@@ -9,8 +9,6 @@ import org.junit.Test;
 import org.junit.FixMethodOrder;
 import org.junit.runners.MethodSorters;
 
-import com.techelevator.view.ConsoleService;
-
 @FixMethodOrder(MethodSorters.NAME_ASCENDING)
 public class ConsoleServiceTest {
 
@@ -125,15 +123,15 @@ public class ConsoleServiceTest {
 		ConsoleService console = getServiceForTesting();
 		String prompt = "Your Age";
 		String expected = "Your Age: ";
-		console.getUserInputInteger(prompt);
+		console.getUserInputNumber(prompt);
 		Assert.assertEquals(expected, output.toString());
 	}
 	
 	@Test
-	public void returns_user_input_for_integer() {
-		Integer expected = 27;
+	public void returns_user_input_for_double() {
+		Double expected = 27.00;
 		ConsoleService console = getServiceForTestingWithUserInput(expected.toString());
-		Integer result = console.getUserInputInteger("Enter a number");
+		Double result = console.getUserInputNumber("Enter a number");
 		Assert.assertEquals(expected, result);
 	}
 	
@@ -142,7 +140,7 @@ public class ConsoleServiceTest {
 		ConsoleService console = getServiceForTestingWithUserInput("bogus" + System.lineSeparator() + "1" + System.lineSeparator());
 		String prompt = "Your Age";
 		String expected = "Your Age: " + System.lineSeparator() + "*** bogus is not valid ***" + System.lineSeparator() + System.lineSeparator() + "Your Age: ";
-		console.getUserInputInteger(prompt);
+		console.getUserInputNumber(prompt);
 		Assert.assertEquals(expected, output.toString());
 	}
 

@@ -7,6 +7,7 @@ import com.techelevator.tenmo.model.User;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.PrintWriter;
+import java.util.List;
 import java.util.Scanner;
 
 public class ConsoleService {
@@ -61,15 +62,15 @@ public class ConsoleService {
 		out.flush();
 		return in.nextLine();
 	}
-
-	public Integer getUserInputInteger(String prompt) {
-		Integer result = null;
+	//changed this so we could send decimals
+	public Double getUserInputNumber(String prompt) {
+		Double result = null;
 		do {
 			out.print(prompt+": ");
 			out.flush();
 			String userInput = in.nextLine();
 			try {
-				result = Integer.parseInt(userInput);
+				result = Double.parseDouble(userInput);
 			} catch(NumberFormatException e) {
 				out.println(System.lineSeparator() + "*** " + userInput + " is not valid ***" + System.lineSeparator());
 			}
@@ -93,12 +94,37 @@ public class ConsoleService {
 		System.out.println("--------------------------------------------");
 		User user = null;
 		for (Transfer transfer : transfers) {
-		String displayTransfers = String.format("%5s",transfer.getTransferId()) + " From:"+ String.format("%10s",transfer.getAccountFromUsername()) +" $"+ String.format("%5s",transfer.getAmount());
-			String displayFromTransfer =  String.format("%5s",transfer.getTransferId()) + " From:"+ String.format("%10s",transfer.getAccountToUsername()) +" $"+ String.format("%5s",transfer.getAmount());
+		String displayTransfers = String.format("%5s",transfer.getTransferId()) + String.format("%5s"," From:") + String.format("%8s",transfer.getAccountFromUsername()) + String.format("%5s"," $")+ String.format("%10s",transfer.getAmount());
+			String displayFromTransfer =  String.format("%5s",transfer.getTransferId()) + String.format("%5s"," To:") + String.format("%10s",transfer.getAccountToUsername()) +String.format("%5s"," $")+ String.format("%10s",transfer.getAmount());
 			System.out.println(displayTransfers);
 			System.out.println(displayFromTransfer);
 			System.out.println("--------------------------------------------" + "\n");
 		}
+
+	}
+	public void printTransferList(List<Transfer> transfers) {
+		System.out.println("--------------------------------------------");
+		System.out.println("Transfers ID      From/To        Amount");
+		System.out.println("--------------------------------------------");
+		for (Transfer transfer : transfers) {
+			String displayTransfers = String.format("%5s", transfer.getTransferId()) + String.format("%5s", " From:") + String.format("%8s", transfer.getAccountFromUsername()) + String.format("%5s", " $") + String.format("%10s", transfer.getAmount());
+			String displayFromTransfer = String.format("%5s", transfer.getTransferId()) + String.format("%5s", " To:") + String.format("%10s", transfer.getAccountToUsername()) + String.format("%5s", " $") + String.format("%10s", transfer.getAmount());
+			System.out.println(displayTransfers);
+			System.out.println(displayFromTransfer);
+			System.out.println("--------------------------------------------" + "\n");
+		}
+	}
+	public void printTransfer(Transfer transfer) {
+		System.out.println("--------------------------------------------");
+		System.out.println("Transfers ID      From/To        Amount");
+		System.out.println("--------------------------------------------");
+		User user = null;
+
+			String displayTransfers = String.format("%5s", transfer.getTransferId()) + String.format("%5s", " From:") + String.format("%8s", transfer.getAccountFromUsername()) + String.format("%5s", " $") + String.format("%10s", transfer.getAmount());
+			String displayFromTransfer = String.format("%5s", transfer.getTransferId()) + String.format("%5s", " To:") + String.format("%10s", transfer.getAccountToUsername()) + String.format("%5s", " $") + String.format("%10s", transfer.getAmount());
+			System.out.println(displayTransfers);
+			System.out.println(displayFromTransfer);
+			System.out.println("--------------------------------------------" + "\n");
 
 	}
 

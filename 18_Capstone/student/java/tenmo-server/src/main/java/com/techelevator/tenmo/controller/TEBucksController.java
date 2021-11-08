@@ -23,7 +23,11 @@ import java.util.List;
 @RestController
 public class TEBucksController {
 
+    private static final int TRANSFER_STATUS_PENDING = 1;
     private static final int TRANSFER_STATUS_APPROVED = 2;
+    private static final int TRANSFER_STATUS_REJECTED = 3;
+
+    private static final int TRANSFER_TYPE_REQUEST = 1;
     private static final int TRANSFER_TYPE_SEND = 2;
 
     private UserDao userDao;
@@ -57,7 +61,9 @@ public class TEBucksController {
      * @return a list of users in the system
      */
     @RequestMapping(path = "list", method = RequestMethod.GET)
-    public List<User> getUsers() { return userDao.findAll(); }
+    public List<User> getUsers(Principal principal) {
+        int userId = userDao.findIdByUsername(principal.getName());
+        return userDao.findAll(userId); }
 
 
 
@@ -69,28 +75,50 @@ public class TEBucksController {
      * @return the transfer object that was created
      */
     @NotBlank()
-    @RequestMapping(path = "transfer", method = RequestMethod.POST)
-    public Transfer addTransfer(Principal principal, @Valid @RequestBody Transfer transfer) throws Exception {
-        transfer.setTransferStatusId(TRANSFER_STATUS_APPROVED);
-        transfer.setTransferTypeId(TRANSFER_TYPE_SEND);
+    @RequestMapping(path = "transfer/send", method = RequestMethod.POST)
+    public Transfer sendTransfer(Principal principal, @Valid @RequestBody Transfer transfer) throws Exception {
 
-        Account fromAccount = accountDao.getAccount(userDao.findIdByUsername(principal.getName()));
-            if (fromAccount == null){
-                throw new ResponseStatusException(HttpStatus.NOT_FOUND,"Your account does not exist");
-            }
-        Account toAccount = accountDao.getAccount(transfer.getAccountTo());
-        if (toAccount == null){
-            throw new ResponseStatusException(HttpStatus.NOT_FOUND,"Your friend's account: "+toAccount.getAccountId()+" does not exist");
-        }
-        BigDecimal amount = transfer.getAmount();
-        int userId = userDao.findIdByUsername(principal.getName());
-
-        transfer.setAccountTo(toAccount.getAccountId());
-        transfer.setAccountFrom(fromAccount.getAccountId());
+        setTransferDetails(principal, transfer, TRANSFER_STATUS_APPROVED, TRANSFER_TYPE_SEND);
         Transfer newTransfer = transferDao.sendTransfer(transfer);
 
         return newTransfer;
     }
+
+
+    @NotBlank
+    @RequestMapping(path = "transfer/request", method = RequestMethod.POST)
+    public Transfer requestTransfer(Principal principal, @Valid @RequestBody Transfer transfer) throws Exception {
+
+        setTransferDetails(principal, transfer, TRANSFER_STATUS_PENDING, TRANSFER_TYPE_REQUEST);
+        Transfer newTransfer = transferDao.requestTransfer(transfer);
+
+        return newTransfer;
+}
+    @RequestMapping(path = "transfer/status/{choiceId}", method = RequestMethod.PUT)
+    public boolean updateTransfer(Principal principal, @Valid @RequestBody Transfer transfer, @PathVariable int choiceId) throws Exception {
+        boolean result = false;
+        //Transfer updatedTransfer = null;
+//        Account userAccount = accountDao.getAccount(userDao.findIdByUsername(principal.getName()));
+//        Account receiverAccount = accountDao.getAccount(newTransfer.getAccountTo());
+
+//        transfer.setAccountTo(receiverAccount.getAccountId());
+//        transfer.setAccountFrom(userAccount.getAccountId());
+
+        if (choiceId == 1) {
+            transfer.setTransferStatusId(TRANSFER_STATUS_APPROVED);
+            //newTransfer.setTransferStatusId(TRANSFER_STATUS_APPROVED);
+            result = transferDao.updateTransferAndBalances(transferDao.getTransferWithUsername(transfer.getTransferId()),TRANSFER_STATUS_APPROVED);
+        }
+        else if (choiceId == 2) {
+            transfer.setTransferStatusId(TRANSFER_STATUS_REJECTED);
+            //newTransfer.setTransferStatusId(TRANSFER_STATUS_REJECTED);
+           result = transferDao.updateTransfer(transferDao.getTransferWithUsername(transfer.getTransferId()), TRANSFER_STATUS_REJECTED);
+        }
+
+        return result;
+
+    }
+
 
     /**
      * Return all Transfers That Have Been Sent or Received for the Logged In User
@@ -99,11 +127,21 @@ public class TEBucksController {
      * @return - all the transfer details for the logged in user
      */
     @RequestMapping(path = "transfer/list", method = RequestMethod.GET)
-    public List<Transfer> listTransfers(Principal principal) {
+    public List<Transfer> listApprovedTransfers(Principal principal) {
         int userId = userDao.findIdByUsername(principal.getName());
         int accountId = accountDao.getAccount(userId).getAccountId();
 
         return transferDao.transferList(accountId);
+
+
+    }
+
+    @RequestMapping(path = "transfer/pending/list", method = RequestMethod.GET)
+    public List<Transfer> listPendingTransfers(Principal principal) {
+        int userId = userDao.findIdByUsername(principal.getName());
+        int accountId = accountDao.getAccount(userId).getAccountId();
+
+        return transferDao.pendingTransfersList(accountId, TRANSFER_STATUS_PENDING);
     }
 
     /**
@@ -121,6 +159,35 @@ public class TEBucksController {
             return transfer;
         }
     }
+
+    //method to set Transfer Details
+    private void setTransferDetails(Principal principal, Transfer transfer, int transferStatus, int transferType) {
+        Account userAccount = accountDao.getAccount(userDao.findIdByUsername(principal.getName()));
+        Account receiverAccount = accountDao.getAccount(transfer.getAccountTo());
+        if (transferStatus == TRANSFER_STATUS_APPROVED && transferType == TRANSFER_TYPE_SEND)  {
+
+            transfer.setTransferStatusId(TRANSFER_STATUS_APPROVED);
+            transfer.setTransferTypeId(TRANSFER_TYPE_SEND);
+            transfer.setAccountTo(receiverAccount.getAccountId());
+            transfer.setAccountFrom(userAccount.getAccountId());
+
+        } else if (transferStatus == TRANSFER_STATUS_PENDING && transferType == TRANSFER_TYPE_REQUEST){
+            transfer.setTransferStatusId(TRANSFER_STATUS_PENDING);
+            transfer.setTransferTypeId(TRANSFER_TYPE_REQUEST);
+            receiverAccount = accountDao.getAccount(transfer.getAccountFrom());
+            transfer.setAccountTo(userAccount.getAccountId());
+            transfer.setAccountFrom(receiverAccount.getAccountId());
+        } if (userAccount == null) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Your account does not exist");
+        }
+        if (receiverAccount == null) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Your friend's account: " + receiverAccount.getAccountId() + " does not exist");
+        }
+        BigDecimal amount = transfer.getAmount();
+        int userId = userDao.findIdByUsername(principal.getName());
+
+    }
+
 
 
 }

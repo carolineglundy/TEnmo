@@ -12,7 +12,7 @@ public class Transfer {
     private int transferTypeId;
     private int transferStatusId;
     private int accountFrom;
-    @Min( value = 1, message = "The field 'accountTo' is required.")
+    //@Min( value = 1, message = "The field 'accountTo' is required.")
     private int accountTo;
     @Min( value = 1, message = "The field 'amount' is required.")
     private BigDecimal amount;
