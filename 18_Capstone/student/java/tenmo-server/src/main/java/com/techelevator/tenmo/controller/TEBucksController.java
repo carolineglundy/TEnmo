@@ -84,7 +84,13 @@ public class TEBucksController {
         return newTransfer;
     }
 
-
+    /**
+     *
+     * @param principal - the logged in user
+     * @param transfer - the transfer to request
+     * @return - the transfer object that was created
+     * @throws Exception
+     */
     @NotBlank
     @RequestMapping(path = "transfer/request", method = RequestMethod.POST)
     public Transfer requestTransfer(Principal principal, @Valid @RequestBody Transfer transfer) throws Exception {
@@ -94,24 +100,25 @@ public class TEBucksController {
 
         return newTransfer;
 }
+
+    /**
+     *
+     * @param principal - the user that is logged in
+     * @param transfer - the transfer to update
+     * @param choiceId - reject or approve
+     * @return - updated Transfer
+     * @throws Exception
+     */
     @RequestMapping(path = "transfer/status/{choiceId}", method = RequestMethod.PUT)
     public boolean updateTransfer(Principal principal, @Valid @RequestBody Transfer transfer, @PathVariable int choiceId) throws Exception {
         boolean result = false;
-        //Transfer updatedTransfer = null;
-//        Account userAccount = accountDao.getAccount(userDao.findIdByUsername(principal.getName()));
-//        Account receiverAccount = accountDao.getAccount(newTransfer.getAccountTo());
-
-//        transfer.setAccountTo(receiverAccount.getAccountId());
-//        transfer.setAccountFrom(userAccount.getAccountId());
 
         if (choiceId == 1) {
             transfer.setTransferStatusId(TRANSFER_STATUS_APPROVED);
-            //newTransfer.setTransferStatusId(TRANSFER_STATUS_APPROVED);
             result = transferDao.updateTransferAndBalances(transferDao.getTransferWithUsername(transfer.getTransferId()),TRANSFER_STATUS_APPROVED);
         }
         else if (choiceId == 2) {
             transfer.setTransferStatusId(TRANSFER_STATUS_REJECTED);
-            //newTransfer.setTransferStatusId(TRANSFER_STATUS_REJECTED);
            result = transferDao.updateTransfer(transferDao.getTransferWithUsername(transfer.getTransferId()), TRANSFER_STATUS_REJECTED);
         }
 
@@ -136,6 +143,11 @@ public class TEBucksController {
 
     }
 
+    /**
+     *
+     * @param principal
+     * @return - transfers that are pending
+     */
     @RequestMapping(path = "transfer/pending/list", method = RequestMethod.GET)
     public List<Transfer> listPendingTransfers(Principal principal) {
         int userId = userDao.findIdByUsername(principal.getName());
